@@ -4,19 +4,18 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/princeparmar/gin-backend.git/pkg/config"
-	"github.com/princeparmar/gin-backend.git/pkg/constant"
-	"github.com/princeparmar/gin-backend.git/pkg/logger"
-	"github.com/princeparmar/gin-backend.git/pkg/utils"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/constant"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/logger"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/utils"
 )
 
 type MiddlewareFuncWithNext func(http.ResponseWriter, *http.Request, func())
 
-func CORSMiddleware(conf *config.Config) http.HandlerFunc {
+func CORSMiddleware(origin, header string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
-		res.Header().Set("Access-Control-Allow-Origin", "*") // TODO: change this to specific domain
+		res.Header().Set("Access-Control-Allow-Origin", origin) // TODO: change this to specific domain
 		res.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		res.Header().Set("Access-Control-Allow-Headers", "*") // TODO: change this to specific domain
+		res.Header().Set("Access-Control-Allow-Headers", header) // TODO: change this to specific domain
 		res.Header().Set("Access-Control-Allow-Credentials", "true")
 	}
 }

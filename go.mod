@@ -1,4 +1,4 @@
-module github.com/princeparmar/gin-backend.git
+module github.com/princeparmar/9and9-templeCMS-backend.git
 
 go 1.21.0
 

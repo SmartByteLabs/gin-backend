@@ -5,11 +5,19 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/princeparmar/gin-backend.git/pkg/config"
-	"github.com/princeparmar/gin-backend.git/pkg/logger"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/logger"
 )
 
-var db *sql.DB
+type Config struct {
+	Host     string
+	User     string
+	Port     int
+	Password string
+	Database string
+
+	MaxIdleConn int
+	MaxOpenConn int
+}
 
 /*
 	Connect
@@ -18,7 +26,7 @@ This part will handle connection with database
 read connection details from env and connect with database
 if connection fails raise and panic
 */
-func Connect(ctx context.Context, conf *config.DatabaseConfig) {
+func Connect(ctx context.Context, conf *Config) *sql.DB {
 	log := logger.LoggerFromContext(ctx).WithField("func", "database.Connect")
 
 	// connect to mysql database with
@@ -35,4 +43,6 @@ func Connect(ctx context.Context, conf *config.DatabaseConfig) {
 	if conf.MaxOpenConn > 0 {
 		db.SetMaxIdleConns(conf.MaxOpenConn)
 	}
+
+	return db
 }
