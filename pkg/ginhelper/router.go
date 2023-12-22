@@ -15,7 +15,6 @@ func getRouter(log logger.Logger, conf *config.Config) *gin.Engine {
 	log.Info("Setting up router")
 	router := gin.Default()
 
-	router.Use(httpHandlerToGinHandler(middleware.RequestIDMiddleware()))
 	router.Use(httpHandlerToGinHandlerWithNext(middleware.LoggerMiddleware(log)))
 
 	// Panic recovery middleware

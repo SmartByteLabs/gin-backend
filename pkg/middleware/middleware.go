@@ -21,17 +21,10 @@ func CORSMiddleware(conf *config.Config) http.HandlerFunc {
 	}
 }
 
-func RequestIDMiddleware() http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		utils.AddValueInRequestContext(req, constant.CtxKey_RequestID, utils.GenerateUUID())
-	}
-}
-
 func LoggerMiddleware(log logger.Logger) MiddlewareFuncWithNext {
 	return func(res http.ResponseWriter, req *http.Request, next func()) {
 		start := time.Now()
-		uid := req.Context().Value(constant.CtxKey_RequestID)
-		log = log.WithField(constant.CtxKey_RequestID, uid)
+		log = log.WithField(constant.CtxKey_RequestID, utils.GenerateUUID())
 
 		log.Infof("Request received from %v %v %v", req.RemoteAddr, req.Method, req.URL)
 		utils.AddValueInRequestContext(req, constant.CtxKey_Logger, log)
