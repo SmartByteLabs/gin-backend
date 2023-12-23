@@ -3,7 +3,7 @@ package logger
 import (
 	"context"
 
-	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/constant"
+	"github.com/princeparmar/gin-backend.git/pkg/constant"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )

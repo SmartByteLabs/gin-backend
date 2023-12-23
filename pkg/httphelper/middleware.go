@@ -1,4 +1,4 @@
-package middleware
+package httphelper
 
 import (
 	"net/http"
@@ -6,10 +6,13 @@ import (
 
 	"github.com/princeparmar/gin-backend.git/pkg/constant"
 	"github.com/princeparmar/gin-backend.git/pkg/logger"
+	"github.com/princeparmar/gin-backend.git/pkg/rbac"
 	"github.com/princeparmar/gin-backend.git/pkg/utils"
 )
 
 type MiddlewareFuncWithNext func(http.ResponseWriter, *http.Request, func())
+
+type MiddlewareFuncWithAbort MiddlewareFuncWithNext
 
 func CORSMiddleware(origin, header string) http.HandlerFunc {
 	return func(res http.ResponseWriter, req *http.Request) {
@@ -31,5 +34,23 @@ func LoggerMiddleware(log logger.Logger) MiddlewareFuncWithNext {
 		next()
 
 		log.Infof("Request completed in %v", time.Since(start))
+	}
+}
+
+func JWTAuthMiddleware[USER any](loginRequired bool, secret string) MiddlewareFuncWithAbort {
+	return func(res http.ResponseWriter, req *http.Request, abort func()) {
+		authHeader := req.Header.Get("Authorization")
+		if authHeader == "" && !loginRequired {
+			return
+		}
+
+		user, err := rbac.JWTAuthValidate[USER](authHeader, secret)
+		if err != nil {
+			NewResponse().Failed().SetMessage("").AddError(err).Send(http.StatusUnauthorized, res)
+			abort()
+			return
+		}
+
+		utils.AddValueInRequestContext(req, constant.CtxKey_User, user)
 	}
 }

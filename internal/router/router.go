@@ -2,8 +2,8 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/princeparmar/9and9-templeCMS-backend.git/internal/config"
-	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/logger"
+	"github.com/princeparmar/gin-backend.git/internal/config"
+	"github.com/princeparmar/gin-backend.git/pkg/logger"
 )
 
 type gitRouterHandler struct {
@@ -18,5 +18,5 @@ func NewRouterHandler(log logger.Logger, conf *config.Config) *gitRouterHandler 
 	}
 }
 
-func (h *gitRouterHandler) RegisterRoute(*gin.Engine) {
+func (h *gitRouterHandler) RegisterRoute(r *gin.Engine) {
 }

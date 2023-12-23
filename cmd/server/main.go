@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/princeparmar/9and9-templeCMS-backend.git/internal/config"
-	"github.com/princeparmar/9and9-templeCMS-backend.git/internal/router"
-	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/ginhelper"
-	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/logger"
+	"github.com/princeparmar/gin-backend.git/internal/config"
+	"github.com/princeparmar/gin-backend.git/internal/router"
+	"github.com/princeparmar/gin-backend.git/pkg/ginhelper"
+	"github.com/princeparmar/gin-backend.git/pkg/logger"
 )
 
 func main() {
