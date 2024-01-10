@@ -14,6 +14,11 @@ RUN go mod download
 # Copy the source from the current directory to the Working Directory inside the container
 COPY . .
 
+# Set environment variables for cross-compilation
+ENV CGO_ENABLED=0
+ENV GOOS=linux
+ENV GOARCH=amd64
+
 # Build the Go app
 RUN make build
 
@@ -31,4 +36,4 @@ COPY --from=builder /app/bin/server .
 EXPOSE 8080
 
 # Command to run the executable
-CMD ["./server"]
+CMD ["/app/server", "runserver"]

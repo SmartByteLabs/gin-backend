@@ -8,9 +8,10 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/database"
 )
 
-func JWTAuthValidate[USER any](authHeader, secret string) (*USER, error) {
+func JWTAuthValidate[USER database.TableWithID[IDTYPE], IDTYPE int64 | string](authHeader, secret string) (*USER, error) {
 	if authHeader == "" {
 		return nil, errors.New("Authorization header is missing")
 	}
@@ -53,9 +54,9 @@ func JWTAuthValidate[USER any](authHeader, secret string) (*USER, error) {
 	}
 
 	user := new(USER)
-	_ = json.Unmarshal([]byte(claims["user"].(string)), user)
+	err = json.Unmarshal([]byte(claims["user"].(string)), user)
 
-	return user, nil
+	return user, err
 }
 
 func GenerateJWT(user interface{}, duration time.Duration, secret string) (string, error) {

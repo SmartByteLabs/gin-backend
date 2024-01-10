@@ -1,6 +1,7 @@
 package ginhelper
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"os"
@@ -9,11 +10,11 @@ import (
 
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
-	"github.com/princeparmar/gin-backend.git/pkg/httphelper"
-	"github.com/princeparmar/gin-backend.git/pkg/logger"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/httphelper"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/logger"
 )
 
-func StartServer(log logger.Logger, port int, routerRegister func(*gin.Engine)) {
+func StartServer(log logger.Logger, db *sql.DB, port int, routerRegister func(*gin.Engine)) {
 
 	// register router and middlewares
 	log.Info("Setting up router")
@@ -22,11 +23,12 @@ func StartServer(log logger.Logger, port int, routerRegister func(*gin.Engine)) 
 	router.Use(HttpHandlerToGinHandlerWithNext(httphelper.LoggerMiddleware(log)))
 
 	// Panic recovery middleware
-	router.Use(gin.Recovery())
+	router.Use(HttpHandlerToGinHandlerWithNext(httphelper.RecoveryMiddleware(log)))
 
 	// CORS middleware
 	router.Use(HttpHandlerToGinHandler(httphelper.CORSMiddleware("*", "*")))
 
+	router.Use(HttpHandlerToGinHandler(httphelper.DatabaseConnectionMiddleware(db)))
 	// Add PProf routes
 	pprof.Register(router)
 
@@ -64,5 +66,11 @@ func HttpHandlerToGinHandler(h http.HandlerFunc) gin.HandlerFunc {
 func HttpHandlerToGinHandlerWithNext(h httphelper.MiddlewareFuncWithNext) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		h(c.Writer, c.Request, c.Next)
+	}
+}
+
+func HttpHandlerToGinHandlerWithAbort(h httphelper.MiddlewareFuncWithAbort) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		h(c.Writer, c.Request, c.Abort)
 	}
 }

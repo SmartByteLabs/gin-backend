@@ -1,0 +1,5 @@
+0000000000000000000000000000000000000000 82dde9e453d0bd55196e313b3611264421b3cf86 Pradip Parmar <prince.soamedia@gmail.com> 1703239151 +0530	clone: from https://github.com/princeparmar/gin-backend.git
+82dde9e453d0bd55196e313b3611264421b3cf86 4673e3b82687fb346ac635c7b1a84cf795a7d945 Pradip Parmar <prince.soamedia@gmail.com> 1703240032 +0530	commit: first commit
+4673e3b82687fb346ac635c7b1a84cf795a7d945 7bf2bea8a6f8a88499990dda969a2a8d914729ff Pradip Parmar <prince.soamedia@gmail.com> 1703243966 +0530	commit: first commit
+7bf2bea8a6f8a88499990dda969a2a8d914729ff c6d77f034edec27ac2537960666c20cbe27b1655 Pradip Parmar <prince.soamedia@gmail.com> 1703245766 +0530	commit: updated structure for server
+c6d77f034edec27ac2537960666c20cbe27b1655 eca2217ca6d1381b10d3f7c6ff821613380551bb Pradip Parmar <prince.soamedia@gmail.com> 1703331746 +0530	commit: RBAC updated

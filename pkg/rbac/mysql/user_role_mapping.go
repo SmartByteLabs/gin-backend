@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/princeparmar/gin-backend.git/pkg/database"
-	"github.com/princeparmar/gin-backend.git/pkg/rbac"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/database"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/rbac"
 )
 
 func CreateUserRoleMappingTable(ctx context.Context, db *sql.DB) error {
@@ -24,21 +24,14 @@ func CreateUserRoleMappingTable(ctx context.Context, db *sql.DB) error {
 	return err
 }
 
-type UserRoleMappingHelper database.CRUDDatabaseHelper[rbac.UserRoleMapping[int], int]
-
-type userRoleMappingHelper struct {
-	*database.BaseDatabaseHelper[rbac.UserRoleMapping[int]]
-}
+type UserRoleMappingHelper database.MysqlCurlHelper[rbac.UserRoleMapping[int64]]
 
 func NewUserRoleMappingHelper(db *sql.DB) UserRoleMappingHelper {
-	const tableName = "user_role_mapping"
-	columns := []string{"id", "user_id", "role_id"}
-
-	return &userRoleMappingHelper{
-		BaseDatabaseHelper: database.NewBaseDatabaseHelper[rbac.UserRoleMapping[int]](db, tableName, columns),
-	}
-}
-
-func (urmh *userRoleMappingHelper) rowParser(m *rbac.UserRoleMapping[int]) []interface{} {
-	return []interface{}{&m.ID, &m.UserID, &m.RoleID}
+	return database.NewBaseHelper[rbac.UserRoleMapping[int64]](db, "user_role_mapping", func(a *rbac.UserRoleMapping[int64]) map[string]interface{} {
+		return map[string]interface{}{
+			"id":      &a.ID,
+			"user_id": &a.UserID,
+			"role_id": &a.RoleID,
+		}
+	})
 }

@@ -9,9 +9,9 @@ import (
 // Response is response structure which will be sent to the client
 type Response struct {
 	Success  bool        `json:"success"`
-	Message  string      `json:"message"`
-	Data     interface{} `json:"data,omitempty"`
-	Errors   []error     `json:"error,omitempty"`
+	Message  string      `json:"message,omitempty"`
+	Data     interface{} `json:"data"`
+	Errors   []string    `json:"error,omitempty"`
 	Warnings []string    `json:"warning,omitempty"`
 }
 
@@ -46,7 +46,7 @@ func (r *Response) SetData(data interface{}) *Response {
 
 // AddError is used to add error in response
 func (r *Response) AddError(err error) *Response {
-	r.Errors = append(r.Errors, err)
+	r.Errors = append(r.Errors, err.Error())
 	return r
 }
 

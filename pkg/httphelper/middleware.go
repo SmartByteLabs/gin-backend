@@ -1,13 +1,16 @@
 package httphelper
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 	"time"
 
-	"github.com/princeparmar/gin-backend.git/pkg/constant"
-	"github.com/princeparmar/gin-backend.git/pkg/logger"
-	"github.com/princeparmar/gin-backend.git/pkg/rbac"
-	"github.com/princeparmar/gin-backend.git/pkg/utils"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/constant"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/database"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/logger"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/rbac"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/utils"
 )
 
 type MiddlewareFuncWithNext func(http.ResponseWriter, *http.Request, func())
@@ -37,7 +40,27 @@ func LoggerMiddleware(log logger.Logger) MiddlewareFuncWithNext {
 	}
 }
 
-func JWTAuthMiddleware[USER any](loginRequired bool, secret string) MiddlewareFuncWithAbort {
+// RecoveryMiddleware recovers from panic and send error response
+func RecoveryMiddleware(log logger.Logger) MiddlewareFuncWithNext {
+	return func(res http.ResponseWriter, req *http.Request, next func()) {
+		defer func() {
+			if err := recover(); err != nil {
+				NewResponse().Failed().SetMessage("Internal Server Error").Send(http.StatusInternalServerError, res)
+				log.Error(fmt.Errorf("%v", err), "Panic recovered")
+			}
+		}()
+
+		next()
+	}
+}
+
+func DatabaseConnectionMiddleware(db *sql.DB) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		utils.AddValueInRequestContext(req, constant.CtxKey_DbConnection, db)
+	}
+}
+
+func JWTAuthMiddleware[USER database.TableWithID[IDTYPE], IDTYPE int64 | string](loginRequired bool, secret string) MiddlewareFuncWithAbort {
 	return func(res http.ResponseWriter, req *http.Request, abort func()) {
 		authHeader := req.Header.Get("Authorization")
 		if authHeader == "" && !loginRequired {
@@ -46,7 +69,7 @@ func JWTAuthMiddleware[USER any](loginRequired bool, secret string) MiddlewareFu
 
 		user, err := rbac.JWTAuthValidate[USER](authHeader, secret)
 		if err != nil {
-			NewResponse().Failed().SetMessage("").AddError(err).Send(http.StatusUnauthorized, res)
+			NewResponse().Failed().SetMessage("authentication failed").AddError(err).Send(http.StatusUnauthorized, res)
 			abort()
 			return
 		}

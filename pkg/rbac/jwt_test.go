@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/database"
 )
 
 func TestJWTAuthValidate(t *testing.T) {
 	type user struct {
+		database.TableID[int64]
 		Name string `json:"name"`
 	}
 
