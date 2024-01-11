@@ -2,12 +2,10 @@ package router
 
 import (
 	"database/sql"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/princeparmar/9and9-templeCMS-backend.git/internal/config"
 	"github.com/princeparmar/9and9-templeCMS-backend.git/internal/model"
-	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/database"
 	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/ginhelper"
 	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/httphelper"
 	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/logger"
@@ -39,8 +37,4 @@ func (h *gitRouterHandler) RegisterRoute(r *gin.Engine) {
 
 	// register all rbac routes
 	rbacRoutes(v1, h.db, h.conf)
-}
-
-func EmptyCondition(req *http.Request) (database.Condition[database.MysqlCondition], error) {
-	return database.NewMysqlConditionHelper(), nil
 }

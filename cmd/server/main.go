@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/princeparmar/9and9-templeCMS-backend.git/internal/config"
 	"github.com/princeparmar/9and9-templeCMS-backend.git/internal/model"
@@ -41,6 +42,7 @@ func init() {
 	setupCommand := &cobra.Command{
 		Use: "setup",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			fmt.Println("Setting up database...")
 			conf := config.NewConfigFromEnv()
 			db := database.Connect(log, conf.DatabaseConfig)
 
@@ -50,8 +52,13 @@ func init() {
 			}
 
 			err = model.CreateAllTables(cmd.Context(), db)
+			if err != nil {
+				return err
+			}
 
-			return err
+			fmt.Println("Database setup completed")
+
+			return nil
 		},
 	}
 

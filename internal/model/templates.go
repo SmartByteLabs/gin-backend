@@ -27,7 +27,7 @@ type Template struct {
 	FilePath    string `json:"filepath,omitempty"`
 }
 
-func GetTemplateHelper(db *sql.DB) database.CrudHelper[rbac.RbacCondition[database.MysqlCondition, int64], Template, int64] {
+func GetTemplateHelper(db *sql.DB) database.CrudHelper[database.MysqlCondition, Template, int64] {
 	h := database.NewBaseHelper(db, "template", func(t *Template) map[string]interface{} {
 		return map[string]interface{}{
 			"id":          &t.ID,
@@ -38,7 +38,7 @@ func GetTemplateHelper(db *sql.DB) database.CrudHelper[rbac.RbacCondition[databa
 	})
 
 	rbacHelper := rbac.NewRbacHelper(mysql.MysqlRbacHelper(db))
-	rbacCrudHelper := rbac.NewCrudHelper(rbacHelper, h)
+	rbacCrudHelper := rbac.NewCrudHelper(rbacHelper, h, rbac.UserFromCTX[int64])
 
 	return rbacCrudHelper
 }

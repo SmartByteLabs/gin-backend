@@ -29,14 +29,14 @@ func CORSMiddleware(origin, header string) http.HandlerFunc {
 func LoggerMiddleware(log logger.Logger) MiddlewareFuncWithNext {
 	return func(res http.ResponseWriter, req *http.Request, next func()) {
 		start := time.Now()
-		log = log.WithField(constant.CtxKey_RequestID, utils.GenerateUUID())
+		logwithid := log.WithField(constant.CtxKey_RequestID, utils.GenerateUUID())
 
-		log.Infof("Request received from %v %v %v", req.RemoteAddr, req.Method, req.URL)
-		utils.AddValueInRequestContext(req, constant.CtxKey_Logger, log)
+		logwithid.Infof("Request received from %v %v %v", req.RemoteAddr, req.Method, req.URL)
+		utils.AddValueInRequestContext(req, constant.CtxKey_Logger, logwithid)
 
 		next()
 
-		log.Infof("Request completed in %v", time.Since(start))
+		logwithid.Infof("Request completed in %v", time.Since(start))
 	}
 }
 

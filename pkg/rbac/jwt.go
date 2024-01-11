@@ -13,21 +13,21 @@ import (
 
 func JWTAuthValidate[USER database.TableWithID[IDTYPE], IDTYPE int64 | string](authHeader, secret string) (*USER, error) {
 	if authHeader == "" {
-		return nil, errors.New("Authorization header is missing")
+		return nil, errors.New("authorization header is missing")
 	}
 
 	if !strings.HasPrefix(authHeader, "Bearer ") {
-		return nil, errors.New("Authorization header is missing Bearer prefix")
+		return nil, errors.New("authorization header is missing Bearer prefix")
 	}
 
 	bearerToken := strings.Split(authHeader, " ")
 	if len(bearerToken) != 2 {
-		return nil, errors.New("Authorization header format is invalid")
+		return nil, errors.New("authorization header format is invalid")
 	}
 
 	token, err := jwt.Parse(bearerToken[1], func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(secret), nil
 	})

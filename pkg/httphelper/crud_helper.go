@@ -90,13 +90,7 @@ func (h crudHelper[T, MODEL, IDTYPE]) Create(resp http.ResponseWriter, req *http
 		return
 	}
 
-	condition, err := h.conditionFactory(req)
-	if err != nil {
-		NewResponse().Failed().AddError(err).SetMessage("In valid condition for "+h.d.GetTableName()).Send(http.StatusBadRequest, resp)
-		return
-	}
-
-	data, err := h.d.Create(req.Context(), &body, condition)
+	data, err := h.d.Create(req.Context(), &body)
 	if err != nil {
 		NewResponse().Failed().AddError(err).SetMessage("Error while POST "+h.d.GetTableName()).Send(http.StatusInternalServerError, resp)
 		return

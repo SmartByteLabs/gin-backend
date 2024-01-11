@@ -26,7 +26,7 @@ func NewUserHelper[T any, IDTYPE int64 | string](helper database.CrudHelper[T, U
 	}
 }
 
-func (u *userHelper[T, IDTYPE]) Create(ctx context.Context, user *User[IDTYPE], condition database.Condition[T]) (*User[IDTYPE], error) {
+func (u *userHelper[T, IDTYPE]) Create(ctx context.Context, user *User[IDTYPE]) (*User[IDTYPE], error) {
 	if user.Username == "" {
 		return nil, errors.New("username is required")
 	}
@@ -42,7 +42,7 @@ func (u *userHelper[T, IDTYPE]) Create(ctx context.Context, user *User[IDTYPE], 
 
 	user.Password = pass
 
-	user, err = u.helper.Create(ctx, user, condition)
+	user, err = u.helper.Create(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func (u *userHelper[T, IDTYPE]) Update(ctx context.Context, user *User[IDTYPE], 
 
 func (u *userHelper[T, IDTYPE]) Get(ctx context.Context, project []string, condition database.Condition[T]) ([]User[IDTYPE], error) {
 	if len(project) == 0 || project[0] == "" || project[0] == "*" {
-		return nil, errors.New("all field updates are not allowed")
+		return nil, errors.New("all field get are not allowed")
 	}
 
 	projectSet := utils.NewSetFromSlice(project)
@@ -104,7 +104,7 @@ func (u *userHelper[T, IDTYPE]) Delete(ctx context.Context, condition database.C
 }
 
 func (u *userHelper[T, IDTYPE]) Login(ctx context.Context, username string, password string, condition database.Condition[T]) (string, error) {
-	users, err := u.helper.Get(ctx, []string{"username", "password"}, condition.New().Set("username", database.ConditionOperationEqual, username))
+	users, err := u.helper.Get(ctx, []string{"id", "username", "password"}, condition.New().Set("username", database.ConditionOperationEqual, username))
 	if err != nil {
 		return "", err
 	}

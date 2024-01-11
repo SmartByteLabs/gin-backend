@@ -13,6 +13,7 @@ func CreateUserRoleMappingTable(ctx context.Context, db *sql.DB) error {
 		id int(11) unsigned NOT NULL AUTO_INCREMENT,
 		user_id int(11) unsigned NOT NULL,
 		role_id int(11) unsigned NOT NULL,
+		reference_id int(11) unsigned,
 		created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		PRIMARY KEY (id),
@@ -32,6 +33,8 @@ func NewUserRoleMappingHelper(db *sql.DB) UserRoleMappingHelper {
 			"id":      &a.ID,
 			"user_id": &a.UserID,
 			"role_id": &a.RoleID,
+
+			"reference_id": &a.ReferenceID,
 		}
 	})
 }

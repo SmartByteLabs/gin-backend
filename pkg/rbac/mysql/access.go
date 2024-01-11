@@ -12,8 +12,8 @@ func CreateAccessTable(ctx context.Context, db *sql.DB) error {
 	query := `CREATE TABLE IF NOT EXISTS access (
 		id int(11) unsigned NOT NULL AUTO_INCREMENT,
 		name varchar(255) NOT NULL,
-		role_level_data varchar(255),
-		user_level_data varchar(255),
+		reference_required tinyint(1) NOT NULL DEFAULT 0,
+
 		created_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		updated_at timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		PRIMARY KEY (id),
@@ -29,10 +29,8 @@ type AccessHelper database.MysqlCurlHelper[rbac.Access[int64]]
 func NewAccessHelper(db *sql.DB) AccessHelper {
 	return database.NewBaseHelper[rbac.Access[int64]](db, "access", func(a *rbac.Access[int64]) map[string]interface{} {
 		return map[string]interface{}{
-			"id":              &a.ID,
-			"name":            &a.Name,
-			"role_level_data": &a.RoleLevelData,
-			"user_level_data": &a.UserLevelData,
+			"id":   &a.ID,
+			"name": &a.Name,
 		}
 	})
 }

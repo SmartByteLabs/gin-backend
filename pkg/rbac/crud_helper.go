@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/database"
-	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/utils"
 )
 
 // type ConditionalData[IDTYPE int64 | string] struct {
@@ -31,87 +30,114 @@ import (
 // }
 
 type CrudHelper[T any, MODEL database.TableWithID[IDTYPE], IDTYPE int64 | string] struct {
-	helper   *RbacHelper[T, IDTYPE]
-	dbHelper database.CrudHelper[T, MODEL, IDTYPE]
+	helper            *RbacHelper[T, IDTYPE]
+	dbHelper          database.CrudHelper[T, MODEL, IDTYPE]
+	getUserfunc       func(ctx context.Context) (*User[IDTYPE], error)
+	referenceRequired bool
 }
 
-func NewCrudHelper[T any, MODEL database.TableWithID[IDTYPE], IDTYPE int64 | string](helper *RbacHelper[T, IDTYPE], dbHelper database.CrudHelper[T, MODEL, IDTYPE]) database.CrudHelper[RbacCondition[T, IDTYPE], MODEL, IDTYPE] {
+func NewCrudHelper[T any, MODEL database.TableWithID[IDTYPE], IDTYPE int64 | string](helper *RbacHelper[T, IDTYPE],
+	dbHelper database.CrudHelper[T, MODEL, IDTYPE], getUserfunc func(ctx context.Context) (*User[IDTYPE], error),
+) *CrudHelper[T, MODEL, IDTYPE] {
 	return &CrudHelper[T, MODEL, IDTYPE]{
-		helper:   helper,
-		dbHelper: dbHelper,
+		helper:      helper,
+		dbHelper:    dbHelper,
+		getUserfunc: getUserfunc,
 	}
+}
+
+func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) ReferenceRequired() *CrudHelper[T, MODEL, IDTYPE] {
+	rbacCrudHelper.referenceRequired = true
+	return rbacCrudHelper
 }
 
 func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) GetColumns(project []string, withoutID bool) []string {
 	return rbacCrudHelper.dbHelper.GetColumns(project, withoutID)
 }
 
-func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) GetColumnsWithAccess(project []string, access []AccessMap) []string {
-	return utils.NewSetFromSlice(getLevelFromAccessMap(access)).Intersection(utils.NewSetFromSlice(rbacCrudHelper.GetColumns(project, false))).ToSlice()
-}
-
 func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) GetTableName() string {
 	return rbacCrudHelper.dbHelper.GetTableName()
 }
 
-func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) GetAccessForMethod(ctx context.Context, conditionHelper database.Condition[RbacCondition[T, IDTYPE]], method string) ([]AccessMap, error) {
-
-	access, err := rbacCrudHelper.helper.GetAccessMapWithCondition(ctx, rbacCrudHelper.dbHelper.GetTableName()+"_"+method, conditionHelper)
+func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) checkAccess(ctx context.Context, method string) (*AccessWithReferenceIDMap[IDTYPE], error) {
+	user, err := rbacCrudHelper.getUserfunc(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(access) == 0 {
-		return nil, errors.New("Access not found")
+	return rbacCrudHelper.helper.GetAccessForUser(ctx, user.GetID(), rbacCrudHelper.dbHelper.GetTableName()+"_"+method)
+}
+
+func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) checkAccessWithConditionUpdate(ctx context.Context, method string,
+	conditionHelper database.Condition[T]) (*AccessWithReferenceIDMap[IDTYPE], error) {
+	access, err := rbacCrudHelper.checkAccess(ctx, method)
+	if err != nil {
+		return nil, err
 	}
+
+	if !rbacCrudHelper.referenceRequired {
+		return access, nil
+	}
+
+	allReference := access.GetAllReference()
+	if len(allReference) == 0 {
+		return nil, errors.New("no data found")
+	}
+
+	conditionHelperForReference := conditionHelper.New()
+	for _, id := range allReference {
+		conditionHelperForReference.Or(conditionHelper.New().Set("id", database.ConditionOperationEqual, id))
+	}
+	conditionHelper.And(conditionHelperForReference)
 
 	return access, nil
 }
 
-func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) Create(ctx context.Context, body *MODEL, conditionHelper database.Condition[RbacCondition[T, IDTYPE]]) (*MODEL, error) {
-	_, err := rbacCrudHelper.GetAccessForMethod(ctx, conditionHelper, "CREATE")
+func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) Create(ctx context.Context, body *MODEL) (*MODEL, error) {
+	_, err := rbacCrudHelper.checkAccess(ctx, "CREATE")
 	if err != nil {
 		return nil, err
 	}
 
-	return rbacCrudHelper.dbHelper.Create(ctx, body, conditionHelper.Final().Condition)
+	return rbacCrudHelper.dbHelper.Create(ctx, body)
 }
 
-func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) Get(ctx context.Context, project []string, conditionHelper database.Condition[RbacCondition[T, IDTYPE]]) ([]MODEL, error) {
+func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) Get(ctx context.Context, project []string, conditionHelper database.Condition[T]) ([]MODEL, error) {
 
-	access, err := rbacCrudHelper.GetAccessForMethod(ctx, conditionHelper, "GET")
+	access, err := rbacCrudHelper.checkAccessWithConditionUpdate(ctx, "GET", conditionHelper)
 	if err != nil {
 		return nil, err
 	}
 
-	data, err := rbacCrudHelper.dbHelper.Get(ctx, rbacCrudHelper.GetColumnsWithAccess(project, access), conditionHelper.Final().Condition)
+	data, err := rbacCrudHelper.dbHelper.Get(ctx, access.GetAllProject(project), conditionHelper)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(data) == 0 {
-		return nil, errors.New("No data found")
+		return nil, errors.New("no data found")
 	}
 
 	return data, nil
 }
 
-func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) Update(ctx context.Context, m *MODEL, project []string, condition database.Condition[RbacCondition[T, IDTYPE]]) error {
+// ISSUE: when we pass empty project and after doing union with access project is nil then it should not return error but it will result all columns.
+func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) Update(ctx context.Context, m *MODEL, project []string, conditionHelper database.Condition[T]) error {
 
-	access, err := rbacCrudHelper.GetAccessForMethod(ctx, condition, "UPDATE")
+	access, err := rbacCrudHelper.checkAccessWithConditionUpdate(ctx, "UPDATE", conditionHelper)
 	if err != nil {
 		return err
 	}
 
-	return rbacCrudHelper.dbHelper.Update(ctx, m, rbacCrudHelper.GetColumnsWithAccess(project, access), condition.Final().Condition)
+	return rbacCrudHelper.dbHelper.Update(ctx, m, access.GetAllProject(project), conditionHelper)
 }
 
-func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) Delete(ctx context.Context, condition database.Condition[RbacCondition[T, IDTYPE]]) error {
+func (rbacCrudHelper *CrudHelper[T, MODEL, IDTYPE]) Delete(ctx context.Context, conditionHelper database.Condition[T]) error {
 
-	_, err := rbacCrudHelper.GetAccessForMethod(ctx, condition, "DELETE")
+	_, err := rbacCrudHelper.checkAccessWithConditionUpdate(ctx, "DELETE", conditionHelper)
 	if err != nil {
 		return err
 	}
 
-	return rbacCrudHelper.dbHelper.Delete(ctx, condition.Final().Condition)
+	return rbacCrudHelper.dbHelper.Delete(ctx, conditionHelper)
 }

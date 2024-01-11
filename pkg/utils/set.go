@@ -1,16 +1,16 @@
 package utils
 
-type set[T comparable] struct {
+type Set[T comparable] struct {
 	m map[T]struct{}
 }
 
-func NewSet[T comparable]() *set[T] {
-	return &set[T]{
+func NewSet[T comparable]() *Set[T] {
+	return &Set[T]{
 		m: map[T]struct{}{},
 	}
 }
 
-func NewSetFromSlice[T comparable](slice []T) *set[T] {
+func NewSetFromSlice[T comparable](slice []T) *Set[T] {
 	set := NewSet[T]()
 	for _, item := range slice {
 		set.Add(item)
@@ -18,26 +18,28 @@ func NewSetFromSlice[T comparable](slice []T) *set[T] {
 	return set
 }
 
-func (s *set[T]) Add(item T) *set[T] {
-	s.m[item] = struct{}{}
+func (s *Set[T]) Add(items ...T) *Set[T] {
+	for _, item := range items {
+		s.m[item] = struct{}{}
+	}
 	return s
 }
 
-func (s *set[T]) Remove(item T) *set[T] {
+func (s *Set[T]) Remove(item T) *Set[T] {
 	delete(s.m, item)
 	return s
 }
 
-func (s *set[T]) Contains(item T) bool {
+func (s *Set[T]) Contains(item T) bool {
 	_, ok := s.m[item]
 	return ok
 }
 
-func (s *set[T]) Size() int {
+func (s *Set[T]) Size() int {
 	return len(s.m)
 }
 
-func (s *set[T]) ToSlice() []T {
+func (s *Set[T]) ToSlice() []T {
 	slice := make([]T, 0, len(s.m))
 	for item := range s.m {
 		slice = append(slice, item)
@@ -45,7 +47,7 @@ func (s *set[T]) ToSlice() []T {
 	return slice
 }
 
-func (s *set[T]) Union(other *set[T]) *set[T] {
+func (s *Set[T]) Union(other *Set[T]) *Set[T] {
 	union := NewSet[T]()
 	for item := range s.m {
 		union.Add(item)
@@ -56,7 +58,7 @@ func (s *set[T]) Union(other *set[T]) *set[T] {
 	return union
 }
 
-func (s *set[T]) Intersection(other *set[T]) *set[T] {
+func (s *Set[T]) Intersection(other *Set[T]) *Set[T] {
 	intersection := NewSet[T]()
 	for item := range s.m {
 		if other.Contains(item) {
@@ -66,7 +68,7 @@ func (s *set[T]) Intersection(other *set[T]) *set[T] {
 	return intersection
 }
 
-func (s *set[T]) GetCommonElements(ar []T) []T {
+func (s *Set[T]) GetCommonElements(ar []T) []T {
 	out := make([]T, 0)
 	for _, item := range ar {
 		if s.Contains(item) {

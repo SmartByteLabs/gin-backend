@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/princeparmar/gin-backend.git/pkg/constant"
-	"github.com/princeparmar/gin-backend.git/pkg/logger"
-	"github.com/princeparmar/gin-backend.git/pkg/utils"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/constant"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/logger"
+	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/utils"
 )
 
 type MiddlewareFuncWithNext func(http.ResponseWriter, *http.Request, func())

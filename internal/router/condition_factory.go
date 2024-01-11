@@ -4,29 +4,19 @@ import (
 	"net/http"
 
 	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/database"
-	"github.com/princeparmar/9and9-templeCMS-backend.git/pkg/rbac"
 )
 
-func templateConditionFactory(req *http.Request) (database.Condition[rbac.RbacCondition[database.MysqlCondition, int64]], error) {
-	// get id => id on path
-	// get all =>
-
-	h := rbac.NewRbacCondition[database.MysqlCondition, int64](1, database.NewMysqlConditionHelper())
-	h.SetUserLevelData("id", "id1")
-	return h, nil
+// EmptyCondition will create simple MysqlConditionHelper with no condition
+func EmptyCondition(req *http.Request) (database.Condition[database.MysqlCondition], error) {
+	return database.NewMysqlConditionHelper(), nil
 }
 
-func templeConditionFactory(req *http.Request) (database.Condition[rbac.RbacCondition[database.MysqlCondition, int64]], error) {
-	h := rbac.NewRbacCondition[database.MysqlCondition, int64](1, database.NewMysqlConditionHelper())
-	h.SetUserLevelData("id", "id1")
-	return h, nil
+// templateConditionFactory returns helper with condition helper. it handles logic related to creating condition
+// from http request.
+func templateConditionFactory(req *http.Request) (database.Condition[database.MysqlCondition], error) {
+	return database.NewMysqlConditionHelper(), nil
 }
 
-/*
-	temple
-		create => no condition required
-		get =>
-		getAll
-		update
-		delete =>
-*/
+func templeConditionFactory(req *http.Request) (database.Condition[database.MysqlCondition], error) {
+	return database.NewMysqlConditionHelper(), nil
+}

@@ -49,7 +49,7 @@ type Address struct {
 	State string `json:"state,omitempty"`
 }
 
-func GetTempleHelper(db *sql.DB) database.CrudHelper[rbac.RbacCondition[database.MysqlCondition, int64], Temple, int64] {
+func GetTempleHelper(db *sql.DB) database.CrudHelper[database.MysqlCondition, Temple, int64] {
 	h := database.NewBaseHelper(db, "temple", func(t *Temple) map[string]interface{} {
 		return map[string]interface{}{
 			"id":            &t.ID,
@@ -66,7 +66,7 @@ func GetTempleHelper(db *sql.DB) database.CrudHelper[rbac.RbacCondition[database
 	})
 
 	rbacHelper := rbac.NewRbacHelper(mysql.MysqlRbacHelper(db))
-	rbacCrudHelper := rbac.NewCrudHelper(rbacHelper, h)
+	rbacCrudHelper := rbac.NewCrudHelper(rbacHelper, h, rbac.UserFromCTX[int64]).ReferenceRequired()
 
 	return rbacCrudHelper
 }

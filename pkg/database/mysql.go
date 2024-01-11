@@ -191,7 +191,7 @@ func (b *BaseHelper[MODEL]) Get(ctx context.Context, project []string, condition
 	return QueryScanner(ctx, b.db, b.getParser(columns), query, cond.args...)
 }
 
-func (b *BaseHelper[MODEL]) Create(ctx context.Context, model *MODEL, condition Condition[MysqlCondition]) (*MODEL, error) {
+func (b *BaseHelper[MODEL]) Create(ctx context.Context, model *MODEL) (*MODEL, error) {
 	args := []interface{}{}
 	columns := []string{}
 
@@ -237,7 +237,20 @@ func (b *BaseHelper[MODEL]) Update(ctx context.Context, model *MODEL, project []
 	where = "WHERE " + where
 	project = b.GetColumns(project, true)
 	query := "UPDATE " + b.tableName + " SET " + strings.Join(project, " = ?, ") + " = ? " + where
-	_, err := b.db.ExecContext(ctx, query, append(b.getParser(project)(model), cond.args...)...)
+	resp, err := b.db.ExecContext(ctx, query, append(b.getParser(project)(model), cond.args...)...)
+	if err != nil {
+		return err
+	}
+
+	rowAffected, err := resp.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowAffected == 0 {
+		return errors.New("no data updated")
+	}
+
 	return err
 }
 
@@ -250,7 +263,19 @@ func (b *BaseHelper[MODEL]) Delete(ctx context.Context, condition Condition[Mysq
 
 	where = " WHERE " + where
 
-	_, err := b.db.ExecContext(ctx, "DELETE FROM "+b.tableName+where, cond.args...)
+	resp, err := b.db.ExecContext(ctx, "DELETE FROM "+b.tableName+where, cond.args...)
+	if err != nil {
+		return err
+	}
+
+	rowAffected, err := resp.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowAffected == 0 {
+		return errors.New("no data deleted")
+	}
 
 	return err
 }
